@@ -82,6 +82,17 @@ export class Span implements SpanInterface, SpanContext {
   public readonly startTimestamp: number = timestampWithMs();
 
   /**
+   * Internal start time tracked with a monotonic clock.
+   *
+   * Works with mostly any browser version released since 2012.
+   * https://caniuse.com/#search=performance.now
+   *
+   * Works with Node.js v8.5.0 or higher.
+   * https://nodejs.org/api/perf_hooks.html#perf_hooks_performance_now
+   */
+  private readonly _startTimestampMonotonic: number = performance.now();
+
+  /**
    * Finish timestamp of the span.
    */
   public timestamp?: number;
@@ -261,7 +272,9 @@ export class Span implements SpanInterface, SpanContext {
       return undefined;
     }
 
-    this.timestamp = timestampWithMs();
+    // TODO: Fallback to timestampWithMs() when performance.now is unavailable.
+    const durationSeconds = (performance.now() - this._startTimestampMonotonic) / 1000;
+    this.timestamp = this.startTimestamp + durationSeconds;
 
     if (this.spanRecorder === undefined) {
       return undefined;
