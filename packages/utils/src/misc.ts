@@ -350,7 +350,14 @@ function _htmlElementAsString(el: unknown): string {
  * Returns a timestamp in seconds with milliseconds precision.
  */
 export function timestampWithMs(): number {
-  return new Date().getTime() / 1000;
+  // TODO: move this polyfill somewhere else
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
+  if (!Date.now) {
+    Date.now = function now() {
+      return new Date().getTime();
+    };
+  }
+  return Date.now() / 1000;
 }
 
 // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
